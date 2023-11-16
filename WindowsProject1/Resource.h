@@ -15,6 +15,10 @@
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
+#define MAX_LOADSTRING				100
+//#define IDD_ABOUTBOX                    101
+//#define IDOK                            102
+//#define IDCANCEL                        103
 #endif
 // Следующие стандартные значения для новых объектов
 //
@@ -26,5 +30,8 @@
 #define _APS_NEXT_COMMAND_VALUE		32771
 #define _APS_NEXT_CONTROL_VALUE		1000
 #define _APS_NEXT_SYMED_VALUE		110
+//#define EMPTY ' '
+//#define CROSS 'X'
+//#define NOLL 'O'
 #endif
 #endif

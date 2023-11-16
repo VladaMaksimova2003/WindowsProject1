@@ -141,12 +141,16 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Drawing.h" />
+    <ClInclude Include="EventHandling.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="WindowsProject1.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConsoleApp.cpp" />
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="EventHandling.cpp" />
+    <ClCompile Include="Drawing.cpp" />
     <ClCompile Include="WindowsProject1.cpp" />
   </ItemGroup>
   <ItemGroup>
