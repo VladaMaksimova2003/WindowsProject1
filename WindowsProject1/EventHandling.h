@@ -6,11 +6,17 @@
 
 class EventHandling {
 public:
-    static void HandleMouseWheel(HWND hWnd, WPARAM wParam, COLORREF& gridColor);
-    static void HandleRightMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, std::vector<std::vector<char>>& grid);
-    static void HandleLeftMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, std::vector<std::vector<char>>& grid);
-    static void HandleHotKey(HWND hWnd, WPARAM wParam, STARTUPINFO tin, PROCESS_INFORMATION pInfo);
+    EventHandling();
+    ~EventHandling();
 
-public:
-    static TCHAR CommandLine[256];
+    void HandleMouseWheel(WPARAM wParam, COLORREF& gridColor);
+    void HandleRightMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q);
+    void HandleLeftMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q);
+    void HandleHotKey(HWND hWnd, WPARAM wParam);
+
+private:
+    TCHAR CommandLine[256];
+    PROCESS_INFORMATION pInfo;
+    STARTUPINFO tin;
 };
+

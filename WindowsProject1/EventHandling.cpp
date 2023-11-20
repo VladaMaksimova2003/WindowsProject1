@@ -1,8 +1,15 @@
 #include "EventHandling.h"
 
-TCHAR EventHandling::CommandLine[256] = _T("notepad");
-// Изменение цвета фона
-void EventHandling::HandleMouseWheel(HWND hWnd, WPARAM wParam, COLORREF& gridColor) {
+
+EventHandling::EventHandling() {
+    CommandLine[0] = L'\0';
+    ZeroMemory(&pInfo, sizeof(PROCESS_INFORMATION));
+    ZeroMemory(&tin, sizeof(STARTUPINFO));
+}
+
+EventHandling::~EventHandling() {}
+
+void EventHandling::HandleMouseWheel(WPARAM wParam, COLORREF& gridColor) {
     int r = GetRValue(gridColor);
     int g = GetGValue(gridColor);
     int b = GetBValue(gridColor);
@@ -24,27 +31,39 @@ void EventHandling::HandleMouseWheel(HWND hWnd, WPARAM wParam, COLORREF& gridCol
     gridColor = RGB(r, g, b);
 }
 
-void EventHandling::HandleRightMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, std::vector<std::vector<char>>& grid) {
+void EventHandling::HandleRightMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q) {
+    int k, m;
     int x = LOWORD(lParam) / cellWidth;
     int y = HIWORD(lParam) / cellHeight;
 
     if (x >= 0 && x < N && y >= 0 && y < N) {
-        grid[x][y] = 'X';
-        InvalidateRect(hWnd, NULL, TRUE); // Перерисовываем окно
+        for (k = 0, q = p; k < N; k++)
+            for (m = 0; m < N; m++, q++) {
+                if (k == x && m == y) {
+                    *q = (*q == 1) ? 0 : 1;
+                    break;
+                }
+            }
     }
 }
 
-void EventHandling::HandleLeftMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, std::vector<std::vector<char>>& grid) {
+void EventHandling::HandleLeftMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q) {
+    int k, m;
     int x = LOWORD(lParam) / cellWidth;
     int y = HIWORD(lParam) / cellHeight;
 
     if (x >= 0 && x < N && y >= 0 && y < N) {
-        grid[x][y] = 'O';
-        InvalidateRect(hWnd, NULL, TRUE); // Перерисовываем окно
+        for (k = 0, q = p; k < N; k++)
+            for (m = 0; m < N; m++, q++) {
+                if (k == x && m == y) {
+                    *q = (*q == 2) ? 0 : 2;
+                    break;
+                }
+            }
     }
 }
 
-void EventHandling::HandleHotKey(HWND hWnd, WPARAM wParam, STARTUPINFO tin, PROCESS_INFORMATION pInfo) {
+void EventHandling::HandleHotKey(HWND hWnd, WPARAM wParam) {
     if (wParam == 0) {
         DestroyWindow(hWnd);
     }

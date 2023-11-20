@@ -2,52 +2,20 @@
 #include "Config.h"
 #include "Drawing.h"
 #include "EventHandling.h"
-
-int MyWinApp::sx = 0;
-int MyWinApp::sy = 0;
-int MyWinApp::x = 0;
-int MyWinApp::y = 0;
 HPEN MyWinApp::hpen = 0;
 HBRUSH MyWinApp::Brush = 0;
-STARTUPINFO MyWinApp::tin = {};
-PROCESS_INFORMATION MyWinApp::pInfo = {};
+
 int MyWinApp::cellWidth = 0;
 int MyWinApp::cellHeight = 0;
 PAINTSTRUCT MyWinApp::ps = {};
-static Config configManager;
-int flag = 0;
+ConfigManager MyWinApp::configManager = {};
+
+UINT WM_PRESSED;
 MyWinApp::MyWinApp(HINSTANCE hInstance) : hInstance(hInstance), hWnd(nullptr) {
 	// Register the window class
-
-	if (__argc >= 3)
-	{
-		if (strcmp(__argv[2], "1") == 0) {
-			configManager.initMap();
-			flag = 1;
-			MessageBox(hWnd, _T("Map"), _T("Map"),
-				MB_OK | MB_ICONQUESTION);
-		}
-		if (strcmp(__argv[2], "2") == 0) {
-			configManager.initFileVariable();
-			flag = 2;
-			MessageBox(hWnd, _T("FileVariable"), _T("FileVariable"),
-				MB_OK | MB_ICONQUESTION);
-		}
-		if (strcmp(__argv[2], "3") == 0) {
-			configManager.init();
-			flag = 3;
-			MessageBox(hWnd, _T("Stream"), _T("Stream"),
-				MB_OK | MB_ICONQUESTION);
-		}
-		if (strcmp(__argv[2], "4") == 0) {
-			configManager.initWinAPI();
-			flag = 4;
-			MessageBox(hWnd, _T("WinAPI"), _T("WinAPI"),
-				MB_OK | MB_ICONQUESTION);
-		}
-	}
-
-	else configManager.init();
+	WM_PRESSED = RegisterWindowMessage(TEXT("MyApp_EnterPressedMsg"));
+	Factory::setConfigInit(hWnd, __argv[2], configManager);
+	configManager.init();
 
 	WNDCLASSEX wcex;
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -58,7 +26,7 @@ MyWinApp::MyWinApp(HINSTANCE hInstance) : hInstance(hInstance), hWnd(nullptr) {
 	wcex.hInstance = hInstance;
 	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
 	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcex.hbrBackground = CreateSolidBrush(configManager.backgroundColor);
+	wcex.hbrBackground = CreateSolidBrush(configManager.getConfig()->getBackgroundColor());
 	wcex.lpszMenuName = nullptr;
 	wcex.lpszClassName = L"MyWinApp";
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
@@ -70,7 +38,7 @@ MyWinApp::MyWinApp(HINSTANCE hInstance) : hInstance(hInstance), hWnd(nullptr) {
 
 	// Create the window
 	hWnd = CreateWindow(L"MyWinApp", L"My WinAPI App", WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, configManager.WIDTH, configManager.HEIGHT, nullptr, nullptr, hInstance, this);
+		CW_USEDEFAULT, CW_USEDEFAULT, configManager.getConfig()->getHeight(), configManager.getConfig()->getHeight(), nullptr, nullptr, hInstance, this);
 
 	if (!hWnd) {
 		// Handle window creation error
@@ -98,8 +66,15 @@ int MyWinApp::Run() {
 
 LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	MyWinApp* pApp;
-	static std::vector<std::vector<char>> grid;
-
+	COLORREF color;
+	EventHandling eventHandler;
+	Drawing drawing;
+	static int* p = 0;
+	static int* q = 0;
+	int i, j;
+	TCHAR str[10];
+	static bool enterPressed = false;
+	static HANDLE hFileMemory;
 	if (message == WM_NCCREATE) {
 		pApp = static_cast<MyWinApp*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pApp));
@@ -112,24 +87,35 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		switch (message) {
 		case WM_SIZE:
 		{
-			sx = LOWORD(lParam);
-			sy = HIWORD(lParam);
+			drawing.SetSize(LOWORD(lParam), HIWORD(lParam));
+
 		}
 		case WM_CREATE:
 		{
 			if (__argc >= 2)
 			{
-				configManager.N = atoi(__argv[1]);
+				configManager.getConfig()->setN(atoi(__argv[1]));
 			}
 
-			hpen = CreatePen(PS_SOLID, 5, configManager.gridColor);
+			hpen = CreatePen(PS_SOLID, 5, configManager.getConfig()->getGridColor());
 
 			RegisterHotKey(hWnd, 0, MOD_CONTROL, 'Q');
 			RegisterHotKey(hWnd, 1, MOD_SHIFT, 'C');
 
-			cellWidth = LOWORD(lParam) / configManager.N;
-			cellHeight = HIWORD(lParam) / configManager.N;
-			grid.resize(configManager.N, std::vector<char>(configManager.N, ' '));
+			cellWidth = LOWORD(lParam) / configManager.getConfig()->getN();
+			cellHeight = HIWORD(lParam) / configManager.getConfig()->getN();
+
+			hFileMemory = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, 4096, _T("Shared"));
+			if (hFileMemory == NULL) { DestroyWindow(hWnd); break; }
+
+			p = (int*)MapViewOfFile(hFileMemory, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
+			if (p == NULL) {
+				CloseHandle(hFileMemory);
+				DestroyWindow(hWnd); break;
+			}
+
+			for (i = 0, q = p; i < configManager.getConfig()->getN(); i++)
+				for (j = 0; j < configManager.getConfig()->getN(); j++, q++) *q = 0;
 		}
 		break;
 		case WM_KEYDOWN:
@@ -143,9 +129,10 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			break;
 			case VK_RETURN:
 			{
-				configManager.backgroundColor = RGB(rand() % 256, rand() % 256, rand() % 256);
+				color = RGB(rand() % 256, rand() % 256, rand() % 256);
+				configManager.getConfig()->setBackgroundColor(color);
 				DeleteObject(Brush);
-				Brush = CreateSolidBrush(configManager.backgroundColor);
+				Brush = CreateSolidBrush(configManager.getConfig()->getBackgroundColor());
 				SetClassLongPtr(hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)Brush);
 				InvalidateRect(hWnd, NULL, TRUE);
 			}
@@ -157,23 +144,33 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		break;
 		case WM_HOTKEY:
 		{
-			EventHandling::HandleHotKey(hWnd, wParam, tin, pInfo);
+			eventHandler.HandleHotKey(hWnd, wParam);
 		}
 		break;
 		case WM_MOUSEWHEEL:
 		{
-			EventHandling::HandleMouseWheel(hWnd, wParam, configManager.gridColor);
+			color = configManager.getConfig()->getGridColor();
+			eventHandler.HandleMouseWheel(wParam, color);
+			configManager.getConfig()->setGridColor(color);
 			DeleteObject(hpen);
-			hpen = CreatePen(PS_SOLID, 5, configManager.gridColor);
+			hpen = CreatePen(PS_SOLID, 5, configManager.getConfig()->getGridColor());
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
 		break;
 		case WM_RBUTTONDOWN: {
-			EventHandling::HandleRightMouseClick(hWnd, lParam, cellWidth, cellHeight, configManager.N, grid);
+			eventHandler.HandleRightMouseClick(hWnd, lParam, cellWidth, cellHeight, configManager.getConfig()->getN(), p, q);
+			enterPressed = !enterPressed;
+			// Отправить сообщение всем окнам.
+			PostMessage(HWND_BROADCAST, WM_PRESSED, 0, 0);
+			InvalidateRect(hWnd, NULL, TRUE);
 		}
 						   break;
 		case WM_LBUTTONDOWN: {
-			EventHandling::HandleLeftMouseClick(hWnd, lParam, cellWidth, cellHeight, configManager.N, grid);
+			eventHandler.HandleLeftMouseClick(hWnd, lParam, cellWidth, cellHeight, configManager.getConfig()->getN(), p, q);
+			enterPressed = !enterPressed;
+			// Отправить сообщение всем окнам.
+			PostMessage(HWND_BROADCAST, WM_PRESSED, 0, 0);
+			InvalidateRect(hWnd, NULL, TRUE);
 		}
 						   break;
 		case WM_PAINT:
@@ -181,35 +178,37 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			HDC hdc = BeginPaint(hWnd, &ps);
 			SelectObject(hdc, hpen);
 
-			Drawing::DrawLine(hdc, x, y, sx, sy, cellWidth, cellHeight);
-			Drawing::DrawGrid(hdc, configManager.N, cellWidth, cellHeight, grid);
-
+			drawing.DrawLine(hdc, cellWidth, cellHeight);
+			drawing.DrawGrid(hdc, configManager.getConfig()->getN(), cellWidth, cellHeight, p, q);
+			DeleteDC(hdc);
 			EndPaint(hWnd, &ps);
 		}
 		break;
+		case WM_COMMAND:
+			switch (LOWORD(wParam))
+			{
+			case IDM_EXIT: DestroyWindow(hWnd); break;
+			default: return DefWindowProc(hWnd, message, wParam, lParam);
+			}
+			break;
 		case WM_DESTROY:
 			UnregisterHotKey(hWnd, 0);
 			UnregisterHotKey(hWnd, 1);
 			DeleteObject(Brush);
 			DeleteObject(hpen);
+			if (p != NULL) UnmapViewOfFile(p);
+			if (hFileMemory != NULL) CloseHandle(hFileMemory);
 			PostQuitMessage(0);
-
-			if (flag == 1) {
-				configManager.saveMap();
-			}
-			if (flag == 2) {
-				configManager.saveFileVariable();
-			}
-			if (flag == 3) {
-				configManager.save();
-			}
-			if (flag == 4) {
-				configManager.saveWinAPI();
-			}
-			else configManager.save();
-			break;
+			configManager.save();
 		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
+			if (message == WM_PRESSED) {
+				enterPressed = !enterPressed;
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+			else {
+				return DefWindowProc(hWnd, message, wParam, lParam);
+			}
+
 		}
 	}
 	else {
