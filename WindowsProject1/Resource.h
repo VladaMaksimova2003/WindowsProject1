@@ -16,6 +16,8 @@
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
 #define MAX_LOADSTRING				100
+#define PEN_WIDTH 5
+#define SHARED_BUFFER_SIZE 4096
 //#define IDD_ABOUTBOX                    101
 //#define IDOK                            102
 //#define IDCANCEL                        103

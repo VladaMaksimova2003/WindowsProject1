@@ -68,6 +68,10 @@ void Stream::save() {
 	outputFile.close();
 }
 
+std::shared_ptr<Config> Stream::getConfig() {
+	return config;
+}
+
 void WinApi::init() {
 	DWORD bytesRead;
 	std::string FileName = config->getFileName();
@@ -118,6 +122,10 @@ void WinApi::save() {
 	}
 }
 
+std::shared_ptr<Config> WinApi::getConfig() {
+	return config;
+}
+
 void FileVariable::init()
 {
 	FILE* fp_read;
@@ -154,6 +162,10 @@ void FileVariable::save()
 	fprintf(fp_write, "%d %d %d %lu %lu\n", config->getWidth(), config->getHeight(), config->getN(), gridColorLU, backgroundColorLU);
 
 	fclose(fp_write);
+}
+
+std::shared_ptr<Config> FileVariable::getConfig() {
+	return config;
 }
 
 void Map::init() {
@@ -223,6 +235,9 @@ void Map::save() {
 
 }
 
+std::shared_ptr<Config> Map::getConfig() {
+	return config;
+}
 
 void Config::setDefaultValues() {
 	WIDTH = 320;
@@ -232,14 +247,52 @@ void Config::setDefaultValues() {
 	backgroundColor = RGB(0, 0, 255);
 }
 
-//void ConfigManager::setConfigType(ConfigType type) {
-//	config = Factory::createConfig(type);
-//}
-//
-//void ConfigManager::init() {
-//	config->init();
-//}
-//
-//void ConfigManager::save() {
-//	config->save();
-//}
+template<typename T, typename... Args>
+void ConfigManager::configure(Args&&... args) {
+	config = std::make_unique<T>(std::forward<Args>(args)...);
+}
+
+void ConfigManager::init() {
+	config->init();
+}
+
+void ConfigManager::save() {
+	config->save();
+}
+
+std::shared_ptr<Config> ConfigManager::getConfig() {
+	return config->getConfig();
+}
+
+void Factory::setConfigInit(HWND hWnd, const char* arg, ConfigManager& configManager) {
+	std::shared_ptr<Config> config = std::make_shared<Config>();
+	if (__argc >= 2)
+	{
+		switch (arg[0]) {
+		case '1':
+			configManager.configure<Map>(config);
+			MessageBox(hWnd, _T("Map"), _T("Map"), MB_OK | MB_ICONQUESTION);
+			break;
+		case '2':
+			configManager.configure<FileVariable>(config);
+			//MessageBox(hWnd, _T("FileVariable"), _T("FileVariable"), MB_OK | MB_ICONQUESTION);
+			break;
+		case '3':
+			configManager.configure<Stream>(config);
+			//MessageBox(hWnd, _T("Stream"), _T("Stream"), MB_OK | MB_ICONQUESTION);
+			break;
+		case '4':
+			configManager.configure<WinApi>(config);
+			//MessageBox(hWnd, _T("WinAPI"), _T("WinAPI"), MB_OK | MB_ICONQUESTION);
+			break;
+		default:
+			configManager.configure<Stream>(config);
+			//MessageBox(hWnd, _T("Stream"), _T("Stream"), MB_OK | MB_ICONQUESTION);
+			break;
+		}
+	}
+	else {
+		configManager.configure<Stream>(config);
+		MessageBox(hWnd, _T("Stream"), _T("Stream"), MB_OK | MB_ICONQUESTION);
+	}
+}

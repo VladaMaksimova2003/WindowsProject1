@@ -53,19 +53,15 @@ void Drawing::DrawGrid(HDC hdc, int N, int cellWidth, int cellHeight, int* p, in
 		for (j = 0; j < N; j++, q++) {
 			if (*q == 1)
 			{
-				//if (grid[i][j] == 'X') {
 				x = i * cellWidth;
 				y = j * cellHeight;
 				DrawCross(hdc, x, y, cellWidth, cellHeight);
-				//}
 			}
 			if (*q == 2)
 			{
-				//if (grid[i][j] == 'O') {
 				x = i * cellWidth + cellWidth / 2;
 				y = j * cellHeight + cellHeight / 2;
 				DrawEllipse(hdc, x, y, cellWidth, cellHeight);
-				//}
 			}
 		}
 	}

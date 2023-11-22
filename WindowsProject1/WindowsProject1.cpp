@@ -13,8 +13,8 @@ ConfigManager MyWinApp::configManager = {};
 UINT WM_PRESSED;
 MyWinApp::MyWinApp(HINSTANCE hInstance) : hInstance(hInstance), hWnd(nullptr) {
 	// Register the window class
-	WM_PRESSED = RegisterWindowMessage(TEXT("MyApp_EnterPressedMsg"));
-	Factory::setConfigInit(hWnd, __argv[2], configManager);
+	WM_PRESSED = RegisterWindowMessage(TEXT("MyApp_PressedMsg"));
+	Factory::setConfigInit(hWnd, __argv[1], configManager);
 	configManager.init();
 
 	WNDCLASSEX wcex;
@@ -73,7 +73,6 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	static int* q = 0;
 	int i, j;
 	TCHAR str[10];
-	static bool enterPressed = false;
 	static HANDLE hFileMemory;
 	if (message == WM_NCCREATE) {
 		pApp = static_cast<MyWinApp*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
@@ -92,12 +91,12 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		}
 		case WM_CREATE:
 		{
-			if (__argc >= 2)
-			{
-				configManager.getConfig()->setN(atoi(__argv[1]));
-			}
+			//if (__argc >= 2)
+			//{
+			//	configManager.getConfig()->setN(atoi(__argv[1]));
+			//}
 
-			hpen = CreatePen(PS_SOLID, 5, configManager.getConfig()->getGridColor());
+			hpen = CreatePen(PS_SOLID, PEN_WIDTH, configManager.getConfig()->getGridColor());
 
 			RegisterHotKey(hWnd, 0, MOD_CONTROL, 'Q');
 			RegisterHotKey(hWnd, 1, MOD_SHIFT, 'C');
@@ -105,8 +104,10 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			cellWidth = LOWORD(lParam) / configManager.getConfig()->getN();
 			cellHeight = HIWORD(lParam) / configManager.getConfig()->getN();
 
-			hFileMemory = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, 4096, _T("Shared"));
-			if (hFileMemory == NULL) { DestroyWindow(hWnd); break; }
+			hFileMemory = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, SHARED_BUFFER_SIZE, _T("Shared"));
+			if (hFileMemory == NULL) { 
+				DestroyWindow(hWnd); break;
+			}
 
 			p = (int*)MapViewOfFile(hFileMemory, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
 			if (p == NULL) {
@@ -153,13 +154,12 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			eventHandler.HandleMouseWheel(wParam, color);
 			configManager.getConfig()->setGridColor(color);
 			DeleteObject(hpen);
-			hpen = CreatePen(PS_SOLID, 5, configManager.getConfig()->getGridColor());
+			hpen = CreatePen(PS_SOLID, PEN_WIDTH, configManager.getConfig()->getGridColor());
 			InvalidateRect(hWnd, NULL, TRUE);
 		}
 		break;
 		case WM_RBUTTONDOWN: {
 			eventHandler.HandleRightMouseClick(hWnd, lParam, cellWidth, cellHeight, configManager.getConfig()->getN(), p, q);
-			enterPressed = !enterPressed;
 			// Отправить сообщение всем окнам.
 			PostMessage(HWND_BROADCAST, WM_PRESSED, 0, 0);
 			InvalidateRect(hWnd, NULL, TRUE);
@@ -167,7 +167,6 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						   break;
 		case WM_LBUTTONDOWN: {
 			eventHandler.HandleLeftMouseClick(hWnd, lParam, cellWidth, cellHeight, configManager.getConfig()->getN(), p, q);
-			enterPressed = !enterPressed;
 			// Отправить сообщение всем окнам.
 			PostMessage(HWND_BROADCAST, WM_PRESSED, 0, 0);
 			InvalidateRect(hWnd, NULL, TRUE);
@@ -202,7 +201,6 @@ LRESULT CALLBACK MyWinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			configManager.save();
 		default:
 			if (message == WM_PRESSED) {
-				enterPressed = !enterPressed;
 				InvalidateRect(hWnd, NULL, TRUE);
 			}
 			else {

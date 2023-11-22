@@ -53,9 +53,7 @@ public:
 
 	void init() override;
 	void save() override;
-	std::shared_ptr<Config> getConfig() override {
-		return config;
-	}
+	std::shared_ptr<Config> getConfig() override;
 };
 
 class Stream : public IConfigurable {
@@ -66,9 +64,7 @@ public:
 
 	void init() override;
 	void save() override;
-	std::shared_ptr<Config> getConfig() override {
-		return config;
-	}
+	std::shared_ptr<Config> getConfig() override;
 };
 
 class FileVariable : public IConfigurable {
@@ -79,9 +75,7 @@ public:
 
 	void init() override;
 	void save() override;
-	std::shared_ptr<Config> getConfig() override {
-		return config;
-	}
+	std::shared_ptr<Config> getConfig() override;
 };
 
 class Map : public IConfigurable {
@@ -92,9 +86,7 @@ public:
 
 	void init() override;
 	void save() override;
-	std::shared_ptr<Config> getConfig() override {
-		return config;
-	}
+	std::shared_ptr<Config> getConfig() override;
 };
 
 class ConfigManager {
@@ -103,52 +95,14 @@ private:
 
 public:
 	template<typename T, typename... Args>
-	void configure(Args&&... args) {
-		config = std::make_unique<T>(std::forward<Args>(args)...);
-	}
+	void configure(Args&&... args);
 
-	void init() {
-		config->init();
-	}
-
-	void save() {
-		config->save();
-	}
-
-	std::shared_ptr<Config> getConfig() {
-		return config->getConfig();
-	}
+	void init();
+	void save();
+	std::shared_ptr<Config> getConfig();
 };
 
 class Factory {
 public:
-	static void setConfigInit(HWND hWnd, const char* arg, ConfigManager& configManager) {
-		std::shared_ptr<Config> config = std::make_shared<Config>();
-		if (__argc >= 3)
-		{
-			switch (arg[0]) {
-			case '1':
-				configManager.configure<Map>(config);
-				//MessageBox(hWnd, _T("Map"), _T("Map"), MB_OK | MB_ICONQUESTION);
-				break;
-			case '2':
-				configManager.configure<FileVariable>(config);
-				//MessageBox(hWnd, _T("FileVariable"), _T("FileVariable"), MB_OK | MB_ICONQUESTION);
-				break;
-			case '3':
-				configManager.configure<Stream>(config);
-				//MessageBox(hWnd, _T("Stream"), _T("Stream"), MB_OK | MB_ICONQUESTION);
-				break;
-			case '4':
-				configManager.configure<WinApi>(config);
-				//MessageBox(hWnd, _T("WinAPI"), _T("WinAPI"), MB_OK | MB_ICONQUESTION);
-				break;
-			default:
-				configManager.configure<Stream>(config);
-				//MessageBox(hWnd, _T("Stream"), _T("Stream"), MB_OK | MB_ICONQUESTION);
-				break;
-			}
-		}
-		else configManager.configure<Stream>(config);
-	}
+	static void setConfigInit(HWND hWnd, const char* arg, ConfigManager& configManager);
 };
