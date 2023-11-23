@@ -1,15 +1,14 @@
-#include "EventHandling.h"
+#include "EventHandler.h"
 
-
-EventHandling::EventHandling() {
-    CommandLine[0] = L'\0';
+EventHandler::EventHandler() {
+    _tcscpy_s(CommandLine, _T("notepad"));
     ZeroMemory(&pInfo, sizeof(PROCESS_INFORMATION));
     ZeroMemory(&tin, sizeof(STARTUPINFO));
 }
 
-EventHandling::~EventHandling() {}
+EventHandler::~EventHandler() {}
 
-void EventHandling::HandleMouseWheel(WPARAM wParam, COLORREF& gridColor) {
+void EventHandler::HandleMouseWheel(WPARAM wParam, COLORREF& gridColor) {
     int r = GetRValue(gridColor);
     int g = GetGValue(gridColor);
     int b = GetBValue(gridColor);
@@ -31,7 +30,7 @@ void EventHandling::HandleMouseWheel(WPARAM wParam, COLORREF& gridColor) {
     gridColor = RGB(r, g, b);
 }
 
-void EventHandling::HandleRightMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q) {
+void EventHandler::HandleRightMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q) {
     int k, m;
     int x = LOWORD(lParam) / cellWidth;
     int y = HIWORD(lParam) / cellHeight;
@@ -47,7 +46,7 @@ void EventHandling::HandleRightMouseClick(HWND hWnd, LPARAM lParam, int cellWidt
     }
 }
 
-void EventHandling::HandleLeftMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q) {
+void EventHandler::HandleLeftMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q) {
     int k, m;
     int x = LOWORD(lParam) / cellWidth;
     int y = HIWORD(lParam) / cellHeight;
@@ -63,7 +62,7 @@ void EventHandling::HandleLeftMouseClick(HWND hWnd, LPARAM lParam, int cellWidth
     }
 }
 
-void EventHandling::HandleHotKey(HWND hWnd, WPARAM wParam) {
+void EventHandler::HandleHotKey(HWND hWnd, WPARAM wParam) {
     if (wParam == 0) {
         DestroyWindow(hWnd);
     }

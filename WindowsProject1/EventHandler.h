@@ -4,10 +4,10 @@
 #include "Config.h"
 #include "framework.h"
 
-class EventHandling {
+class EventHandler {
 public:
-    EventHandling();
-    ~EventHandling();
+    EventHandler();
+    ~EventHandler();
 
     void HandleMouseWheel(WPARAM wParam, COLORREF& gridColor);
     void HandleRightMouseClick(HWND hWnd, LPARAM lParam, int cellWidth, int cellHeight, int N, int* p, int* q);

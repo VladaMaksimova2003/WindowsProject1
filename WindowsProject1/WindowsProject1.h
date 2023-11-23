@@ -18,5 +18,6 @@ private:
 	static PAINTSTRUCT ps;
 	static ConfigManager configManager;
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	static void GettingData(HWND hWnd, UINT message, MyWinApp** pApp, LPARAM lParam);
 };
 
