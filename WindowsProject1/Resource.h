@@ -18,6 +18,9 @@
 #define MAX_LOADSTRING				100
 #define PEN_WIDTH 5
 #define SHARED_BUFFER_SIZE 4096
+#define NUNBER_OF_PLAYERS 2
+#define SHARED_FILE_NAME L"SharedMemoryFile"
+#define MAX_MOVES 10
 //#define IDD_ABOUTBOX                    101
 //#define IDOK                            102
 //#define IDCANCEL                        103

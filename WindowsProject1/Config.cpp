@@ -271,7 +271,7 @@ void Factory::setConfigInit(HWND hWnd, const char* arg, ConfigManager& configMan
 		switch (arg[0]) {
 		case '1':
 			configManager.configure<Map>(config);
-			MessageBox(hWnd, _T("Map"), _T("Map"), MB_OK | MB_ICONQUESTION);
+			//MessageBox(hWnd, _T("Map"), _T("Map"), MB_OK | MB_ICONQUESTION);
 			break;
 		case '2':
 			configManager.configure<FileVariable>(config);
@@ -293,6 +293,6 @@ void Factory::setConfigInit(HWND hWnd, const char* arg, ConfigManager& configMan
 	}
 	else {
 		configManager.configure<Stream>(config);
-		MessageBox(hWnd, _T("Stream"), _T("Stream"), MB_OK | MB_ICONQUESTION);
+		//MessageBox(hWnd, _T("Stream"), _T("Stream"), MB_OK | MB_ICONQUESTION);
 	}
 }

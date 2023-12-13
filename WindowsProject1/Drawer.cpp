@@ -53,32 +53,38 @@ void Drawer::DrawLine(HDC hdc, int cellWidth, int cellHeight) {
 }
 
 
-// Реализация функции отрисовки сетки
+//void Drawer::DrawGrid(HDC hdc, int cellWidth, int cellHeight, SharedData* sharedData) {
+//	int* p = sharedData->arrayInfo;
+//	for (int i = 0; i < sharedData->ArraySize; i++) {
+//		for (int j = 0; j < sharedData->ArraySize; j++, p++) {
+//
+//			int index = i * sharedData->ArraySize + j;
+//			DrawFigure(hdc, cellWidth, cellHeight, i, j, *p);
+//		}
+//	}
+//}
 void Drawer::DrawGrid(HDC hdc, int N, int cellWidth, int cellHeight, int* p, int* q) {
 	int i, j;
 	for (i = 0, q = p; i < N; i++) {
 		for (j = 0; j < N; j++, q++) {
-			DrawFigure(hdc, cellWidth, cellHeight, i, j, q);
+			DrawFigure(hdc, cellWidth, cellHeight, i, j, *q);
 		}
 	}
 }
 
-void Drawer::DrawFigure(HDC hdc, int cellWidth, int cellHeight, int i, int j, int* q) {
+void Drawer::DrawFigure(HDC hdc, int cellWidth, int cellHeight, int i, int j, int value) {
 	int x, y;
-	if (*q == 1)
-	{
+	if (value == 1) {
 		x = i * cellWidth;
 		y = j * cellHeight;
 		DrawCross(hdc, x, y, cellWidth, cellHeight);
 	}
-	if (*q == 2)
-	{
+	else if (value == 2) {
 		x = i * cellWidth + cellWidth / 2;
 		y = j * cellHeight + cellHeight / 2;
 		DrawEllipse(hdc, x, y, cellWidth, cellHeight);
 	}
 }
-
 void Drawer::SetSize(int sx, int sy) {
 	this->sx = sx;
 	this->sy = sy;
